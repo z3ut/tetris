@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "parcel src/index.html"
+  },
+  "devDependencies": {
+    "sass": "^1.26.5",
+    "typescript": "^3.9.2"
+  }
+}

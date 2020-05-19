@@ -1,0 +1,29 @@
+.board {
+  width: 200px;
+  height: 400px;
+  border: 1px solid black;
+  position: relative;
+  overflow: hidden;
+  float: left;
+}
+
+.next-figure {
+  width: 80px;
+  height: 80px;
+  float: left;
+  position: relative;
+}
+
+.score {
+  float: left;
+}
+
+.brick {
+  border: 1px solid grey;
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  box-sizing: border-box;
+
+  transition: all .1s ease-out;
+}
