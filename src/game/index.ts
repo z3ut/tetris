@@ -5,6 +5,8 @@ import { generateRandomFigure } from './figure-generator';
 
 import { changePoints, isIntersected } from './point-math';
 import { removeHorizontalLines, isBricksInInvalidPosition, rotateBricks } from './brick-math';
+import { initMenu } from '../menu';
+import { saveResult } from '../leaderboard/leaderboard';
 
 const ROTATION_ANGLE_RAD = - 90 * Math.PI / 180;
 const BOARD_WIDTH = 10;
@@ -134,8 +136,7 @@ function tick() {
     updateScoreElement();
 
     if (isIntersected(boardBricks, figure.bricks)) {
-      alert(`Game over!\nScore: ${score}`);
-      clearInterval(tickInterval);
+      gameOver();
     }
   } else {
     figure.center.y -= 1;
@@ -144,6 +145,13 @@ function tick() {
 
   updateBrickElementPositions(boardBricks);
   updateBrickElementPositions(figure.bricks);
+}
+
+function gameOver() {
+  saveResult(score);
+  clearInterval(tickInterval);
+  alert(`Game over!\nScore: ${score}`);
+  initMenu();
 }
 
 
