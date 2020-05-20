@@ -18,7 +18,7 @@ let figure: Figure;
 let nextFigure: Figure;
 let tickInterval: number;
 let score = 0;
-const boardBricks: Brick[] = [];
+let boardBricks: Brick[];
 
 const main = document.querySelector('main');
 const gameScreenTemplate = document.querySelector<HTMLTemplateElement>('#game-screen');
@@ -69,8 +69,8 @@ function addFigureToBoard(figure: Figure) {
 function drawNextFigure() {
   nextFigureElement.innerHTML = '';
   for (let b of nextFigure.bricks) {
-    const left = (b.x + 1) / NEXT_FIGURE_AREA_SIZE * 100;
-    const right =  (b.y + 1) / NEXT_FIGURE_AREA_SIZE * 100;
+    const left = (b.x + NEXT_FIGURE_AREA_SIZE / 2) / NEXT_FIGURE_AREA_SIZE * 100;
+    const right =  (b.y + NEXT_FIGURE_AREA_SIZE / 2) / NEXT_FIGURE_AREA_SIZE * 100;
     const brickELement = createBrickElement(left, right, nextFigure.color);
     nextFigureElement.appendChild(brickELement);
   }
@@ -84,7 +84,6 @@ function createBrickElement(left: number, bottom: number, color: string) {
   brickELement.style.backgroundColor = color;
   return brickELement;
 }
-
 
 
 function linesToScore(lines: number) {
@@ -147,15 +146,6 @@ function tick() {
   updateBrickElementPositions(figure.bricks);
 }
 
-function gameOver() {
-  saveResult(score);
-  clearInterval(tickInterval);
-  alert(`Game over!\nScore: ${score}`);
-  initMenu();
-}
-
-
-
 function handleKeyDown(event) {
   if (!figure) {
     return;
@@ -202,8 +192,15 @@ function handleKeyDown(event) {
   }
 }
 
+function gameOver() {
+  saveResult(score);
+  clearInterval(tickInterval);
+  alert(`Game over!\nScore: ${score}`);
+  initMenu();
+}
 
 function initGame() {
+  boardBricks = [];
   drawBoardScreen();
 
   score = 0;
