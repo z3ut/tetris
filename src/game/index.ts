@@ -12,7 +12,7 @@ const ROTATION_ANGLE_RAD = - 90 * Math.PI / 180;
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const TICK_INTERVAL_MS = 200;
-const NEXT_FIGURE_AREA_SIZE = 4;
+const NEXT_FIGURE_AREA_SIZE = 6;
 
 let figure: Figure;
 let nextFigure: Figure;
@@ -194,7 +194,7 @@ function handleKeyDown(event) {
 
 function gameOver() {
   saveResult(score);
-  clearInterval(tickInterval);
+  clearGame();
   alert(`Game over!\nScore: ${score}`);
   initMenu();
 }

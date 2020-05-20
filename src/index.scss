@@ -1,29 +1,69 @@
+$brick-size: 20px;
+
+$board-brick-width-count: 10;
+$board-brick-height-count: 20;
+$board-width: $board-brick-width-count * $brick-size;
+$board-height: $board-brick-height-count * $brick-size;
+
+$next-figure-brick-size: 6;
+$next-figure-width:  $next-figure-brick-size * $brick-size;
+$next-figure-height:  $next-figure-brick-size * $brick-size;
+
+html, body, main {
+  margin: 0;
+  min-height: 100%;
+}
+
+.content-wrapper {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .board {
-  width: 200px;
-  height: 400px;
+  width: $board-width;
+  height: $board-height;
   border: 1px solid black;
   position: relative;
   overflow: hidden;
-  float: left;
 }
 
 .next-figure {
-  width: 80px;
-  height: 80px;
+  width: $next-figure-width;
+  height: $next-figure-height;
   float: left;
   position: relative;
+  border: 1px solid black;
+  margin: 0 1em;
 }
 
 .score {
-  float: left;
+  font-size: 1.5em;
+  margin-top: 1em;
+  text-align: center;
 }
 
 .brick {
   border: 1px solid grey;
-  width: 20px;
-  height: 20px;
+  width: $brick-size;
+  height: $brick-size;
   position: absolute;
   box-sizing: border-box;
 
   transition: all .1s ease-out;
+}
+
+button {
+  height: 2em;
+  width: 15em;
+  display: block;
+  margin: 2em;
+  font-size: 1.25em;
+  cursor: pointer;
+}
+
+.leaderboard-list {
+  font-size: 1.5em;
+  text-align: center;
 }

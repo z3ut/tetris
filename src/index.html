@@ -10,32 +10,34 @@
   <main></main>
 
   <template id="menu-screen">
-    <div>
-      <a href="#" data-start-new-game>New game</a>
-      <a href="#" data-open-leaderboard>Leaderboard</a>
+    <div class="content-wrapper">
+      <div>
+        <button data-start-new-game>New game</button>
+        <button data-open-leaderboard>Leaderboard</button>
+      </div>
     </div>
   </template>
 
   <template id="leaderboard-screen">
-    <div>
-      <div data-leaderboard-list>
-
+    <div class="content-wrapper">
+      <div>
+        <div data-leaderboard-list class="leaderboard-list">
+        </div>
+        <button data-back>Back</button>
       </div>
-
-      <button data-back>Back</button>
     </div>
   </template>
 
   <template id="game-screen">
-    <div>
+    <div class="content-wrapper">
       <div data-board class="board">
-
       </div>
-      <div data-next-figure class="next-figure">
-
-      </div>
-      <div class="score">
-        Score: <span data-score></span>
+      <div class="stats">
+        <div data-next-figure class="next-figure">
+        </div>
+        <div class="score">
+          Score: <span data-score></span>
+        </div>
       </div>
     </div>
   </template>
