@@ -193,6 +193,13 @@ function handleKeyDown(event) {
   if (event.key === 's') {
     tick();
   }
+
+  if (event.keyCode === 27) {
+    if (confirm('Exit to main menu?')) {
+      clearGame();
+      initMenu();
+    }
+  }
 }
 
 

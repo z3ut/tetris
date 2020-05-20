@@ -22,7 +22,7 @@ function initLeaderboard() {
 function fillLeaderboard() {
   const result = getResults();
   for (let r of result) {
-    const resultElement = document.createElement('li');
+    const resultElement = document.createElement('div');
     resultElement.innerText = r.toString();
     leaderboardListELement.appendChild(resultElement);
   }
