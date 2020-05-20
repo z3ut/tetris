@@ -18,20 +18,21 @@ let tickInterval: number;
 let score = 0;
 const boardBricks: Brick[] = [];
 
-const containerElement = document.createElement('div');
-document.body.appendChild(containerElement);
+const main = document.querySelector('main');
+const gameScreenTemplate = document.querySelector<HTMLTemplateElement>('#game-screen');
 
-const boardElement = document.createElement('div');
-boardElement.className = 'board';
-containerElement.appendChild(boardElement);
+let boardElement: HTMLElement;
+let nextFigureElement: HTMLElement;
+let scoreElement: HTMLElement;
 
-const nextFigureElement = document.createElement('div');
-nextFigureElement.className = 'next-figure';
-containerElement.appendChild(nextFigureElement);
-
-const scoreElement = document.createElement('div');
-scoreElement.className = 'score';
-containerElement.appendChild(scoreElement);
+function drawBoardScreen() {
+  const gameScreen = gameScreenTemplate.content.cloneNode(true);
+  main.innerHTML = '';
+  main.appendChild(gameScreen);
+  boardElement = document.querySelector('[data-board]');
+  nextFigureElement = document.querySelector('[data-next-figure]');
+  scoreElement = document.querySelector('[data-score]');
+}
 
 function calculateBrickLeftPosition(x: number) {
   return x / BOARD_WIDTH * 100;
@@ -100,7 +101,7 @@ function linesToScore(lines: number) {
 }
 
 function updateScoreElement() {
-  scoreElement.innerText = `Score: ${score}`;
+  scoreElement.innerText = score.toString();
 }
 
 function tick() {
@@ -188,6 +189,8 @@ function handleKeyDown(event) {
 
 
 function initGame() {
+  drawBoardScreen();
+
   score = 0;
   updateScoreElement();
 
