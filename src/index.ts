@@ -1,42 +1,22 @@
-interface Point {
-  x: number;
-  y: number;
-}
+import { Brick } from './brick';
+import { Figure } from './figure';
 
-interface Brick extends Point {
-  color: string;
-  htmlElement?: HTMLElement;
-}
+import { generateRandomFigure } from './figure-generator';
 
-interface Figure {
-  center: Point;
-  color: string;
-  bricks: Brick[];
-}
+import { changePoints, isIntersected } from './point-math';
+import { removeHorizontalLines, isBricksInInvalidPosition, rotateBricks } from './brick-math';
 
 const ROTATION_ANGLE_RAD = - 90 * Math.PI / 180;
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const TICK_INTERVAL_MS = 200;
-
-function rotatePoint(point: Point, rotationCenter: Point, angle: number) {
-  const translatedPoint: Point = {
-    x: point.x - rotationCenter.x,
-    y: point.y - rotationCenter.y
-  };
-
-  return {
-    x: Math.round(Math.cos(angle) * translatedPoint.x - Math.sin(angle) * translatedPoint.y + rotationCenter.x),
-    y: Math.round(Math.sin(angle) * translatedPoint.x + Math.cos(angle) * translatedPoint.y + rotationCenter.y)
-  }
-}
+const NEXT_FIGURE_AREA_SIZE = 4;
 
 let figure: Figure;
 let nextFigure: Figure;
 let tickInterval: number;
-let linesDestroyed = 0;
 let score = 0;
-const bricks: Brick[] = [];
+const boardBricks: Brick[] = [];
 
 const containerElement = document.createElement('div');
 document.body.appendChild(containerElement);
@@ -61,38 +41,34 @@ function calculateBrickBottomPosition(y: number) {
   return y / BOARD_HEIGHT * 100;
 }
 
-function updateBrickPositions(bricks: Brick[]) {
+export function copyBricks(bricks: Brick[]) {
+  return bricks.map(b => ({ ...b }));
+}
+
+function updateBrickElementPositions(bricks: Brick[]) {
   for (let b of bricks) {
     b.htmlElement.style.left = calculateBrickLeftPosition(b.x) + '%';
     b.htmlElement.style.bottom = calculateBrickBottomPosition(b.y) + '%';
   }
 }
 
-function setFigureAbsolutePositionsOnBoard(figure: Figure) {
-  for (let b of figure.bricks) {
-    b.x += figure.center.x;
-    b.y += figure.center.y;
-    b.color = figure.color;
-  }
-}
-
 function addFigureToBoard(figure: Figure) {
-  for (let brick of figure.bricks) {
-    const htmlElement = createBrickElement(calculateBrickLeftPosition(brick.x),
-      calculateBrickBottomPosition(brick.y), figure.color);
-    brick.htmlElement = htmlElement;
-    boardElement.appendChild(htmlElement);
-  }
-}
+  changePoints(figure.bricks, figure.center.x, figure.center.y);
 
-function clearBoard() {
-  boardElement.innerHTML = '';
+  for (let brick of figure.bricks) {
+    const left = calculateBrickLeftPosition(brick.x);
+    const right = calculateBrickBottomPosition(brick.y);
+    brick.htmlElement = createBrickElement(left, right, figure.color);
+    boardElement.appendChild(brick.htmlElement);
+  }
 }
 
 function drawNextFigure() {
   nextFigureElement.innerHTML = '';
   for (let b of nextFigure.bricks) {
-    const brickELement = createBrickElement((b.x + 1) / 4 * 100, (b.y + 1) / 4 * 100, nextFigure.color);
+    const left = (b.x + 1) / NEXT_FIGURE_AREA_SIZE * 100;
+    const right =  (b.y + 1) / NEXT_FIGURE_AREA_SIZE * 100;
+    const brickELement = createBrickElement(left, right, nextFigure.color);
     nextFigureElement.appendChild(brickELement);
   }
 }
@@ -106,115 +82,7 @@ function createBrickElement(left: number, bottom: number, color: string) {
   return brickELement;
 }
 
-function removeHorizontalLines(points: Brick[], width: number, height: number): { points: Brick[], removedPoints: Brick[], numberOfRemovedLines: number } {
-  let currentRowIndex = 0;
-  let removedPoints: Brick[] = [];
-  let numberOfRemovedLines = 0;
-  let changedPoints = points;
-  while (currentRowIndex <= height) {
-    const currentRowPoints = changedPoints.filter(p => p.y == currentRowIndex);
-    if (currentRowPoints.length === width) {
-      changedPoints = changedPoints.filter(p => p.y !== currentRowIndex);
-      const pointsAboveCurrentRow = changedPoints.filter(p => p.y > currentRowIndex);
-      changePoints(pointsAboveCurrentRow, 0, -1);
-      removedPoints.push(...currentRowPoints);
-      numberOfRemovedLines++;
-    } else {
-      currentRowIndex++;
-    }
-  }
-  return { points: changedPoints, removedPoints: removedPoints, numberOfRemovedLines };
-}
 
-function changePoints(points: Point[], dx: number, dy: number) {
-  for (let p of points) {
-    p.x += dx;
-    p.y += dy;
-  }
-}
-
-
-function isIntersected(points1: Point[], points2: Point[]) {
-  return points1.some(p1 => points2.some(p2 => p1.x === p2.x && p1.y === p2.y));
-}
-
-
-const figurePoints = [
-  [
-    // square
-    { x: 0, y: 1 },
-    { x: 1, y: 1 },
-    { x: 0, y: 0 },
-    { x: 1, y: 0 }
-  ],
-  [
-    // line
-    { x: 0, y: 2 },
-    { x: 0, y: 1 },
-    { x: 0, y: 0 },
-    { x: 0, y: -1 }
-  ],
-  [
-    // z
-    { x: -1, y: 1 },
-    { x: 0, y: 1 },
-    { x: 0, y: 0 },
-    { x: 1, y: 0 }
-  ],
-  [
-    // T
-    { x: -1, y: 1 },
-    { x: 0, y: 1 },
-    { x: 1, y: 1 },
-    { x: 0, y: 0 }
-  ],
-  [
-    // L
-    { x: 0, y: -1 },
-    { x: 0, y: 0 },
-    { x: 0, y: 1 },
-    { x: 1, y: -1 }
-  ]
-];
-
-function getRandomArrayElement(array: any[]) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-function getRandomFigurePoints() {
-  return getRandomArrayElement(figurePoints).map(b => ({ ...b }));
-}
-
-
-const colors = [
-  'red',
-  'green',
-  'blue',
-  'yellow'
-]
-
-function getRandomColor() {
-  return getRandomArrayElement(colors);
-}
-
-
-function generateRandomFigure(): Figure {
-  return {
-    center: {
-      x: Math.round(BOARD_WIDTH / 2),
-      y: BOARD_HEIGHT
-    },
-    color: getRandomColor(),
-    bricks: getRandomFigurePoints()
-  };
-}
-
-function getPointsAbsolutePositions(points: Point[], center: Point) {
-  return points.map(f => ({
-    x: center.x + f.x,
-    y: center.y + f.y
-  }));
-}
 
 function linesToScore(lines: number) {
   switch (lines) {
@@ -240,30 +108,31 @@ function tick() {
     return;
   }
 
-  const newFigureBricksPosition = copyBricks(figure.bricks);
-  changePoints(newFigureBricksPosition, 0, -1);
-  if (isIntersected(newFigureBricksPosition, bricks) || newFigureBricksPosition.some(b => b.y < 0)) {
-    bricks.push(...figure.bricks);
+  const figureNewBricks = copyBricks(figure.bricks);
+  changePoints(figureNewBricks, 0, -1);
 
-    const { points, removedPoints, numberOfRemovedLines } = removeHorizontalLines(bricks, BOARD_WIDTH, BOARD_HEIGHT);
+  if (isBricksInInvalidPosition(figureNewBricks, boardBricks, BOARD_WIDTH)) {
+    boardBricks.push(...figure.bricks);
+
+    const { changedPoints, removedPoints, numberOfRemovedLines } =
+      removeHorizontalLines(boardBricks, BOARD_WIDTH, BOARD_HEIGHT);
+
     for (let b of removedPoints) {
-      const brickIndex = bricks.indexOf(b);
-      bricks.splice(brickIndex, 1);
+      const brickIndex = boardBricks.indexOf(b);
+      boardBricks.splice(brickIndex, 1);
       boardElement.removeChild(b.htmlElement);
     }
-    
-    
+
     figure = nextFigure;
-    setFigureAbsolutePositionsOnBoard(figure);
     addFigureToBoard(figure);
     
-    nextFigure = generateRandomFigure();
+    nextFigure = generateRandomFigure(BOARD_WIDTH, BOARD_HEIGHT);
     drawNextFigure();
     
     score += linesToScore(numberOfRemovedLines);
     updateScoreElement();
 
-    if (isIntersected(bricks, figure.bricks)) {
+    if (isIntersected(boardBricks, figure.bricks)) {
       alert(`Game over!\nScore: ${score}`);
       clearInterval(tickInterval);
     }
@@ -272,49 +141,46 @@ function tick() {
     changePoints(figure.bricks, 0, -1);
   }
 
-  updateBrickPositions(bricks);
-  updateBrickPositions(figure.bricks);
+  updateBrickElementPositions(boardBricks);
+  updateBrickElementPositions(figure.bricks);
 }
 
-function copyBricks(bricks: Brick[]) {
-  return bricks.map(b => ({ ...b }));
-}
+
 
 function handleKeyDown(event) {
   if (!figure) {
     return;
   }
+
   if (event.key === 'a') {
     const figureNewBricks = copyBricks(figure.bricks);
     changePoints(figureNewBricks, -1, 0);
-    if (figureNewBricks.some(b => b.x < 0) || isIntersected(figureNewBricks, bricks)) {
+    if (isBricksInInvalidPosition(figureNewBricks, boardBricks, BOARD_WIDTH)) {
       return;
     }
     figure.center.x -= 1;
     changePoints(figure.bricks, -1, 0);
   }
+
   if (event.key === 'd') {
     const figureNewBricks = copyBricks(figure.bricks);
     changePoints(figureNewBricks, 1, 0);
-    if (figureNewBricks.some(b => b.x >= BOARD_WIDTH) || isIntersected(figureNewBricks, bricks)) {
+    if (isBricksInInvalidPosition(figureNewBricks, boardBricks, BOARD_WIDTH)) {
       return;
     }
     figure.center.x += 1;
     changePoints(figure.bricks, 1, 0);
   }
-  if (event.key === ' ') {
-    let figureBricksAfterRotation = copyBricks(figure.bricks).map(b => {
-      const { x, y } = rotatePoint(b, figure.center, ROTATION_ANGLE_RAD);
-      return { x, y, color: b.color, htmlElement: b.htmlElement };
-    });
 
-    if (figureBricksAfterRotation
-      .some(b => b.x < 0 || b.x >= BOARD_WIDTH || b.y < 0 ||
-        isIntersected(figureBricksAfterRotation, bricks))) {
+  if (event.key === ' ') {
+    const figureNewBricks = copyBricks(figure.bricks);
+    rotateBricks(figureNewBricks, figure.center, ROTATION_ANGLE_RAD);
+    if (isBricksInInvalidPosition(figureNewBricks, boardBricks, BOARD_WIDTH)) {
       return;
     }
-    figure.bricks = figureBricksAfterRotation;
+    figure.bricks = figureNewBricks;
   }
+
   if (event.key === 's') {
     tick();
   }
@@ -322,17 +188,17 @@ function handleKeyDown(event) {
 
 
 function initGame() {
-  linesDestroyed = 0;
   score = 0;
   updateScoreElement();
-  figure = generateRandomFigure();
-  setFigureAbsolutePositionsOnBoard(figure);
-  nextFigure = generateRandomFigure();
-  drawNextFigure();
+
+  figure = generateRandomFigure(BOARD_WIDTH, BOARD_HEIGHT);
   addFigureToBoard(figure);
-  tickInterval = setInterval(() => {
-    tick();
-  }, TICK_INTERVAL_MS);
+
+  nextFigure = generateRandomFigure(BOARD_WIDTH, BOARD_HEIGHT);
+  drawNextFigure();
+  
+  tickInterval = setInterval(tick, TICK_INTERVAL_MS);
+
   document.addEventListener('keydown', handleKeyDown);
 }
 
